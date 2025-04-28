@@ -7,8 +7,8 @@ import { Note } from './notes/note.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'notes.sqlite',
+      type: 'better-sqlite3',
+      database: ':memory:',
       entities: [Note],
       synchronize: true,
     }),

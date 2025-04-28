@@ -4,51 +4,18 @@ import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Note } from './note.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
-import {
-  PostgreSqlContainer,
-  StartedPostgreSqlContainer,
-} from '@testcontainers/postgresql';
 
 describe('NotesService', () => {
-  console.log('Suite started');
-  let container: StartedPostgreSqlContainer;
-
   let service: NotesService;
   let repo: Repository<Note>;
-
-  beforeAll(async () => {
-    console.log('Initializing PostgreSQL container');
-    try {
-      container = await new PostgreSqlContainer()
-        .withUsername('postgres')
-        .withPassword('postgres')
-        .withDatabase('test')
-        .start();
-      console.log('Container started successfully');
-    } catch (error) {
-      console.error('Error starting container:', error);
-      throw error;
-    }
-
-    console.log('Connection details:', {
-      host: container.getHost(),
-      port: container.getPort(),
-      username: container.getUsername(),
-      password: container.getPassword(),
-      database: container.getDatabase(),
-    });
-  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: container.getHost(),
-          port: container.getPort(),
-          username: container.getUsername(),
-          password: container.getPassword(),
-          database: container.getDatabase(),
+          type: 'better-sqlite3',
+          database: ':memory:',
+          dropSchema: true,
           entities: [Note],
           synchronize: true,
         }),
@@ -61,10 +28,8 @@ describe('NotesService', () => {
     repo = module.get<Repository<Note>>(getRepositoryToken(Note));
   });
 
-  afterEach(async () => await repo.clear());
-
-  afterAll(async () => {
-    await container.stop();
+  afterEach(async () => {
+    await repo.clear();
   });
 
   describe('findAll', () => {
